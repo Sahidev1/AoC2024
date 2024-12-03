@@ -15,7 +15,7 @@ defmodule Sol do
   def parseInput do
     fPath="input.txt"
     {:ok, data} = File.read(fPath)
-    data = String.split(data, "\n", trim: true);
+    data = String.split(data, "\n", trim: true)
     vals = Enum.map(data, fn e-> Enum.map(String.split(e, ~r{\s+}), fn x->
       String.to_integer(x)
       end)
