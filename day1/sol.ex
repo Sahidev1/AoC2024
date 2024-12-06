@@ -6,6 +6,25 @@ defmodule Sol do
     dSum = proc1(Enum.sort(i1), Enum.sort(i2));
   end
 
+  def part2 do
+    [i1, i2] = parseInput()
+    l2map = Enum.reduce(i2, %{}, fn k, acc ->
+      v = Map.get(acc, k, nil)
+      if (v === nil) do
+        Map.put(acc, k, 1)
+      else
+        Map.put(acc, k, v + 1)
+      end
+    end)
+    proc2(i1, l2map, 0)
+  end
+
+  def proc2(l1=[curr|rest], l2map, simscore) do
+    count = Map.get(l2map, curr, 0)
+    proc2(rest, l2map, simscore + (curr * count))
+  end
+  def proc2([], _, simscore) do simscore end
+
   def proc1([i1v|t1], [i2v|t2]) do
     proc1(t1, t2) + abs(i1v - i2v)
   end
