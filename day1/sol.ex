@@ -1,16 +1,16 @@
 
 defmodule Sol do
 
-  def main do
+  def part1 do
     [i1, i2] = parseInput()
-    dSum = proc(Enum.sort(i1), Enum.sort(i2));
+    dSum = proc1(Enum.sort(i1), Enum.sort(i2));
   end
 
-  def proc([i1v|t1], [i2v|t2]) do
-    proc(t1, t2) + abs(i1v - i2v)
+  def proc1([i1v|t1], [i2v|t2]) do
+    proc1(t1, t2) + abs(i1v - i2v)
   end
-  def proc([],_) do 0 end
-  def proc(_,[]) do 0 end
+  def proc1([],_) do 0 end
+  def proc1(_,[]) do 0 end
 
   def parseInput do
     fPath="input.txt"
