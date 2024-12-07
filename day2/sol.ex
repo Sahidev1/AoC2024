@@ -9,22 +9,14 @@ defmodule Sol do
   def part2 do
     input = parseInput()
     cnt = length(input)
-    IO.puts("count is: #{cnt}")
     unsafeReps = Enum.filter(input, fn e->
       is_safe(e, nil) === 0
     end)
     cnt = length(unsafeReps)
-    IO.puts("count is: #{cnt}")
 
     proc1(input) + proc2(unsafeReps, 0)
-
   end
 
-  def getDiffs(rep=[curr|rest=[next|tail]], acc) do
-    acc = acc++[curr - next]
-    getDiffs(rest, acc)
-  end
-  def getDiffs([curr|_], acc) do acc end
 
   def example do
     input = [
@@ -36,7 +28,6 @@ defmodule Sol do
     unsafeReps = Enum.filter(input, fn e->
       is_safe(e, nil) === 0
     end)
-    IO.inspect(unsafeReps)
     {proc1(input), proc2(unsafeReps, 0)}
   end
 
@@ -51,7 +42,6 @@ defmodule Sol do
   def isActuallySafe(report, i, maxIndex, isSafe) do
     subRep = List.delete_at(report, i)
     safety = is_safe(subRep, nil)
-    #if(safety === 0) do IO.inspect(subRep) end
     isActuallySafe(report, i + 1, maxIndex, safety)
   end
 
