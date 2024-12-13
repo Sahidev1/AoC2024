@@ -3,9 +3,34 @@
 defmodule Sol do
   @type movement :: nil|:vertical | :horizontal | :diagdown | :diagup
 
-  def main do
+  def part1 do
     data = parseInput()
-    proc(data, 0, 0, 0)
+    proc1(data, 0, 0, 0)
+  end
+
+  def part2 do
+    data = parseInput()
+    proc2(data, 0, 0)
+  end
+
+  def example2 do
+    ex =
+   "SSM
+    MAT
+    SAM"
+    IO.puts(ex)
+    data = parse(ex)
+    proc2(data,0,0)
+  end
+
+  def example3 do
+    ex =
+   "MAS
+    MAT
+    MMS"
+    IO.puts(ex)
+    data = parse(ex)
+    proc2(data,0,0)
   end
 
   def example do
@@ -21,10 +46,47 @@ MAMMMXMMMM
 MXMXAXMASX"
 
     data = parse(examplestr)
-    proc(data, 0, 0, 0)
+    IO.puts(examplestr)
+    {proc1(data, 0, 0, 0), proc2(data, 0, 0)}
   end
 
-  def proc(data, row, col, count) do
+  def proc2([rows: r, cols: c, matrix: m], row, col) when row > r - 3 do 0 end
+  def proc2(d=[rows: r, cols: c, matrix: m], row, col) when col > c - 3 do
+    proc2(d, row + 1, 0)
+  end
+  def proc2(d, row, col) do
+    val = if(is_xmas?(d,row,col)) do
+      1
+    else
+      0
+    end
+    val + proc2(d, row, col + 1)
+  end
+
+  def is_xmas?(d, i , j) do
+    case matrixGetChar(d, i + 1, j + 1) do
+      'A'->
+        top = [matrixGetChar(d, i, j), matrixGetChar(d, i, j + 2)]
+        bottom = [matrixGetChar(d, i + 2, j), matrixGetChar(d, i + 2, j + 2)]
+        mapping = mapTop(top)
+        case mapping do
+          nil -> false
+          _-> bottom === mapping
+        end
+      _->false
+    end
+  end
+
+  def mapTop(['M','M']) do ['S', 'S'] end
+  def mapTop(['S','S']) do ['M','M'] end
+  def mapTop(['S','M']) do ['S','M'] end
+  def mapTop(['M','S']) do ['M','S'] end
+  def mapTop(_) do nil end
+
+
+
+
+  def proc1(data, row, col, count) do
     curr = matrixGetChar(data, row, col)
     cnt = count
     cnt = cond do
@@ -42,7 +104,7 @@ MXMXAXMASX"
     end
 
     if (row < data[:rows]) do
-      proc(data, row , col, cnt)
+      proc1(data, row , col, cnt)
     else
       cnt
     end
