@@ -2,22 +2,91 @@
 defmodule Sol do
   @type rules :: %{} | %{key: integer() , set: MapSet.t(integer())}
 
-  def main do
+  def part1 do
     {rules, updates} = parseInput()
-    proc(rules, updates, 0)
+    proc1(rules, updates, 0)
+  end
+
+  def part2 do
+    {rules, updates} = parseInput()
+    invalidUpdates = Enum.filter(updates, fn update->
+      medianIndex = div(length(update), 2)
+      isValidUpdate(rules, update, update, medianIndex, 0, 0) === 0
+    end)
+    validatedInvalids = proc2(rules, invalidUpdates, [])
+    all = validatedInvalids
+    proc1(rules, all, 0)
   end
 
   def test do
     {rules, updates} = example()
-    proc(rules, updates, 0)
+    proc1(rules, updates, 0)
   end
 
-  def proc(rules, updates=[update|rest], sum) do
+  def test2 do
+    {rules, updates} = example()
+    invalidUpdates = Enum.filter(updates, fn update->
+      medianIndex = div(length(update), 2)
+      isValidUpdate(rules, update, update, medianIndex, 0, 0) === 0
+    end)
+    {rules, invalidUpdates}
+    proc2(rules, invalidUpdates, [])
+  end
+
+  def proc2(rules, updates=[], validatedUpds) do validatedUpds end
+  def proc2(rules, updates=[update|rest], validatedUpds) do
+    validatedUpd = swapInvalids(rules, update)
+    proc2(rules, rest, [validatedUpd|validatedUpds])
+  end
+
+  def swapInvalids(rules, update) do
+    res = findSwapInvalid(rules, update, update, 0)
+    case res do
+      {i,j}->
+        tmp = Enum.at(update, i)
+        update = List.replace_at(update, i, Enum.at(update, j))
+        update = List.replace_at(update, j, tmp)
+        swapInvalids(rules, update)
+      nil->
+        update
+    end
+  end
+
+  def findSwapInvalid(rules, update, [], itercnt) do
+    nil
+  end
+  def findSwapInvalid(rules, update, [curr| rest], itercnt) do
+
+    set = Map.get(rules, curr)
+    currIndex = itercnt
+
+    {isValid, i} = (set === nil && {true, 0}) || Enum.reduce_while(update, {true, 0}, fn e,acc ->
+      {isValid, i} = acc
+
+      isValid = cond do
+          i < currIndex ->
+            !MapSet.member?(set, e)
+          i > currIndex ->
+            MapSet.member?(set, e)
+          true -> true
+      end
+
+      if(isValid) do {:cont, {true, i + 1}} else {:halt, {false, i}} end
+    end)
+
+    if (isValid) do
+      findSwapInvalid(rules, update,rest, itercnt + 1)
+    else
+      {currIndex, i}
+    end
+  end
+
+  def proc1(rules, updates=[update|rest], sum) do
     medianIndex = div(length(update), 2)
     median = isValidUpdate(rules, update, update, medianIndex, 0, 0)
-    proc(rules, rest, sum + median)
+    proc1(rules, rest, sum + median)
   end
-  def proc(rules, [], sum) do sum end
+  def proc1(rules, [], sum) do sum end
 
   def isValidUpdate(rules, update, [], medianIndex, itercnt, median) do
     median
