@@ -43,8 +43,7 @@ defmodule Sol do
   def validateVal([], seekedVal, accVal) do 0 end
   def validateVal(operands=[curr|rest], seekedVal, accVal) do
     lval=validateVal(rest, seekedVal, accVal + curr)
-    rval=validateVal(rest, seekedVal, accVal * curr)
-    if(lval !== 0) do lval else rval end
+    if(lval !== 0) do lval else validateVal(rest, seekedVal, accVal * curr)  end
   end
 
 
@@ -52,12 +51,12 @@ defmodule Sol do
   def validateVal2([], seekedVal, accVal) do 0 end
   def validateVal2(operands=[curr|rest], seekedVal, accVal) do
     lval=validateVal2(rest, seekedVal, accVal + curr)
-    rval=validateVal2(rest, seekedVal, accVal * curr)
-    concatval=validateVal2(rest, seekedVal, String.to_integer(to_string(accVal)<>to_string(curr)))
-    cond do
-      lval !== 0 -> lval
-      rval !== 0 -> rval
-      true->concatval
+    if(lval !== 0) do lval
+    else
+      rval=validateVal2(rest, seekedVal, accVal * curr)
+      if (rval !== 0) do rval
+      else validateVal2(rest, seekedVal, String.to_integer(to_string(accVal)<>to_string(curr)))
+      end
     end
   end
 
