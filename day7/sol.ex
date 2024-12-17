@@ -7,6 +7,11 @@ defmodule Sol do
     proc1(equations,0)
   end
 
+  def part2 do
+    equations = parseInput()
+    proc2(equations, 0)
+  end
+
   def example do
     input="190: 10 19
 3267: 81 40 27
@@ -18,9 +23,16 @@ defmodule Sol do
 21037: 9 7 18 13
 292: 11 6 16 20"
     equations=parse(input)
-    proc1(equations, 0)
+    IO.inspect(equations)
+    {proc1(equations, 0), proc2(equations,0)}
 
   end
+
+  def proc2([], sum) do sum end
+  def proc2(equations=[{value, operands=[first|restops]}|rest], sum) do
+    proc2(rest, sum + validateVal2(restops, value, first))
+  end
+
 
   def proc1([], sum) do sum end
   def proc1(equations=[{value, operands=[first|restops]}|rest], sum) do
@@ -34,6 +46,21 @@ defmodule Sol do
     rval=validateVal(rest, seekedVal, accVal * curr)
     if(lval !== 0) do lval else rval end
   end
+
+
+  def validateVal2([], seekedVal, accVal) when seekedVal === accVal do accVal end
+  def validateVal2([], seekedVal, accVal) do 0 end
+  def validateVal2(operands=[curr|rest], seekedVal, accVal) do
+    lval=validateVal2(rest, seekedVal, accVal + curr)
+    rval=validateVal2(rest, seekedVal, accVal * curr)
+    concatval=validateVal2(rest, seekedVal, String.to_integer(to_string(accVal)<>to_string(curr)))
+    cond do
+      lval !== 0 -> lval
+      rval !== 0 -> rval
+      true->concatval
+    end
+  end
+
 
   def parseInput do
     filePath="input.txt"
