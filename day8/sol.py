@@ -5,13 +5,14 @@ class Sol:
     def __init__(self, inputPath):
         file = open(inputPath, "r")
         lines = file.readlines()
+        self.lines = lines
         file.readline()
+        
         
         self.length:int = len(lines)
         self.map:list[list[chr]] = []
 
-        for i in range(self.length):
-            self.map.append(list(lines[i].strip()))
+        self.initialize_map_from_lines()
 
         self.antennaMap:dict[chr, list[(int,int)]] = {}
 
@@ -35,6 +36,11 @@ class Sol:
                     else: self.vectorPairs[antenna] = [(ants[i], ants[j])]
         self.antiNodeCnt = 0
 
+    def initialize_map_from_lines(self):
+        self.map = []
+        for i in range(self.length):
+            self.map.append(list(self.lines[i].strip()))
+
     def printVectorPairs(self):
         for antenna in self.vectorPairs:
             print(f'{antenna}: {self.vectorPairs[antenna]}')
@@ -55,6 +61,24 @@ class Sol:
             self.antiNodeCnt += 1
             self.map[x][y] = '#'
 
+    def putAntiNodesByIncrement(self,x_start,y_start ,x_incr, y_incr):
+        x = x_start
+        y = y_start
+        while (x < self.length and x >= 0 and y < self.length and y >=0):
+            if(self.map[x][y] != '#'):
+                self.antiNodeCnt += 1
+                self.map[x][y] = '#'
+            x += x_incr
+            y += y_incr
+        
+
+    def antiNodeGen2(self):
+        for antenna in self.vectorPairs:
+            for((a,b), (c,d)) in self.vectorPairs[antenna]:
+                self.putAntiNodesByIncrement(c, d, c-a, d - b)
+                self.putAntiNodesByIncrement(a, b, a -c , b - d)
+
+
     def antiNodeGen(self):
         for antenna in self.vectorPairs:
             for ((a, b), (c, d)) in self.vectorPairs[antenna]:
@@ -65,9 +89,17 @@ class Sol:
     def solve(self):
         self.antiNodeGen()
         return self.antiNodeCnt
+    
+    def solve2(self):
+        self.antiNodeCnt = 0
+        self.initialize_map_from_lines()
+        self.antiNodeGen2()
+        return self.antiNodeCnt
+
 
 sol = Sol("input.txt")
 
 sol.printMap()
 print(sol.solve())
-
+sol.printMap()
+print(sol.solve2())
