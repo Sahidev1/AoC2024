@@ -73,12 +73,42 @@ class Sol:
                 visitmatx[x + 1][y] = visited 
 
         return score
-                
+    
+    def trail_head_score2(self,x, y):
+        queue:list[(int,int)] = [(x,y)]
+        cmatx = self.charMatrix
+
+
+        score = 0
+        while(len(queue) > 0):
+            (x,y) = queue.pop(0)
+            currV = cmatx[x][y]
+
+            if(currV == 9):
+                score += 1
+                continue
+
+            if (y > 0 and cmatx[x][ y - 1] - currV == 1): 
+                queue.append((x, y - 1))
+            if (y < self.columns - 1 and cmatx[x][ y + 1] - currV == 1):
+                queue.append((x, y + 1))
+            if (x > 0 and cmatx[x - 1][ y] - currV == 1):
+                queue.append((x-1,y))
+            if (x < self.rows - 1 and cmatx[x + 1][ y] - currV == 1):
+                queue.append((x+1,y))
+
+        return score
         
     def trail_head_score_sum(self):
         score = 0
         for (x,y) in self.trailHeads:
             score += self.trail_head_score(x,y)
+        return score
+    
+    def trail_head_score_sum2(self):
+        score = 0
+        for (x,y) in self.trailHeads:
+            score += self.trail_head_score2(x,y)
         return score
 
 
@@ -91,3 +121,5 @@ sol.print_trail_heads()
 (x,y)=sol.trailHeads[0]
 score = sol.trail_head_score_sum()
 print(score)
+score2 = sol.trail_head_score_sum2()
+print(score2)
