@@ -115,10 +115,10 @@ class Sol:
 
 
 sol = Sol("input.txt")
-sol.print_char_matrix()
-sol.print_visit_matrix()
-sol.print_trail_heads()
-(x,y)=sol.trailHeads[0]
+#sol.print_char_matrix()
+#sol.print_visit_matrix()
+#sol.print_trail_heads()
+#(x,y)=sol.trailHeads[0]
 score = sol.trail_head_score_sum()
 print(score)
 score2 = sol.trail_head_score_sum2()
