@@ -11,7 +11,44 @@ class Sol:
         for i in range(len(self.digits)):
             self.digits[i] = int(self.digits[i])
 
+        self.space:list[(int, int)] = [] # [(size, index)] sorted by size
+        self.files:list[(int, int)] = [] # [(index, size)] reverse sort by index
+
         self.gen_block_map()
+        self.analyze_blocks()
+
+    def analyze_blocks(self):
+        i = 0
+        length = len(self.blockMap)
+        while i < length:
+            
+            j = i
+            while(j < length and self.blockMap[j] == -1):
+                j += 1
+            if (j - i > 0):
+                self.space.append((j - i, i))
+                i = j
+                continue
+
+            jval = self.blockMap[j]
+            while(j < length and self.blockMap[j] != - 1 and self.blockMap[j] == jval):
+                j += 1
+            if (j - i > 0):
+                self.files.append((i, j - i))
+                i = j
+            
+        def sorter(e):
+            return e[0]
+        
+        self.space.sort(key=sorter)
+        self.files.sort(key=sorter)
+
+
+    def print_space(self):
+        print(self.space)
+
+    def print_files(self):
+        print(self.files)
 
     # nr inserts: N*avg(digits)
     def gen_block_map(self):
@@ -21,100 +58,57 @@ class Sol:
         for i in range(len(self.digits)):
             d = self.digits[i]
             if i % 2 == 0:
-                for i in range(d):
+                for j in range(d):
                     blockMap.insert(0,idcnt)
-                idcnt += 1
+                if (d > 0): idcnt += 1
             else:
-                for i in range(d):
+                for j in range(d):
                     blockMap.insert(0,spaceFlag)
         blockMap.reverse()
         self.blockMap = blockMap
 
-    def gen_block_map2(self):
-        idcnt = 0
-        spaceFlag = -1
-        blockMap = []
-        for i in range(len(self.digits)):
-            d = self.digits[i]
-            tmp = []
-            if i % 2 == 0:
-                for i in range(d):
-                    tmp.insert(0,idcnt)
-                idcnt += 1
-            else:
-                for i in range(d):
-                    tmp.insert(0,spaceFlag)
-            if(len(tmp) > 0): blockMap.insert(0,tmp)
-        blockMap.reverse()
-        self.blockMap = blockMap    
-
+   
     def printBlockMap(self):
         print(self.blockMap)
 
-    def _find_leftmost_space(self,prevlm):
-        i = prevlm
-        if(i > 0): i += 1
-        while True:
-            #print("LOOP STUCK LEFTMOST")
-            if (i >= len(self.blockMap)): return len(self.blockMap)
-            elif (self.blockMap[i][0] == -1): return i
-            else: i += 1
-    
-    def _next_rmost_file(self, prevrm):
-        i = prevrm
-        i -= 1
-        while True:
-            #print("LOOP STUCK NEXT RMOST")
-            if(i < 0): return len(self.blockMap)
-            elif(self.blockMap[i][0] != -1): return i
-            else: i -= 1
+    def find_free_space(self, size:int):
+        #return index of free space with size >= size
+        container = []
+        for i in range(len(self.space)):
+            if self.space[i][0] >= size:
+                container.append((self.space[i][1], i)) 
+        minT = min(container, key=lambda e: e[0], default=(-1, -1))
+        
+        return minT[1]
 
-    def _free_space_merge(self):
-        bmap = self.blockMap
-        i = 1
-        while(i < len(bmap)):
-            if(bmap[i][0] == -1 and bmap[i-1][0] == -1):
-                bmap[i-1] = bmap[i-1] + bmap[i]
-                bmap.pop(i)
-            else: i += 1
 
-    def split_list(self, lst, split_index_exclusive):
-        return (lst[0:split_index_exclusive], lst[split_index_exclusive:len(lst)])
-    
     def compact(self):
-        lmost = self._find_leftmost_space(0)
-        lptr = lmost
-        rptr = self._next_rmost_file(len(self.blockMap))
+        
+        while self.files:
+            minFreeIndex:int = min(self.space, key=lambda e: e[1])[1]
+            (index, size) = self.files.pop()
+            if (minFreeIndex >= index): break
+            foundSpaceIndex = self.find_free_space(size)
 
-        bmap:list[list[int]] = self.blockMap
-        while (lmost < rptr):
-            lptr = self._find_leftmost_space(0)
-            #print(f'(lmost, rptr): {lmost, rptr}')     
-            while(lptr < rptr):
-                lptr = self._find_leftmost_space(0)
-                rptr = self._next_rmost_file(0)
-                spaceLen = len(bmap[lptr])
-                fileLen = len(bmap[rptr])
-                if (spaceLen >= fileLen):
-             #       print(f'inner loop: {lptr, rptr}')
-                    if(spaceLen > fileLen):
-                        (tmpFileLoc, newSpaceLoc) = self.split_list(bmap[lptr], fileLen)
-                        bmap[lptr] = tmpFileLoc
-                        bmap.insert(lptr + 1, newSpaceLoc)  
-                        rptr += 1
-                        #print(f'spaceLen: {spaceLen}, fileLen: {fileLen} ,{tmpFileLoc+newSpaceLoc} --> {(tmpFileLoc, newSpaceLoc)}')
-                    tmp = bmap[lptr]
-                    bmap[lptr] = bmap[rptr]
-                    bmap[rptr] = tmp
-                    lmost = self._find_leftmost_space(lmost)
-                    #self.printBlockMap()
-                    break
-                else: 
-                    rptr = self._next_rmost_file(rptr)
-            self._free_space_merge()
-                           
-         
+            #print(f'file(index,size):{(index, size)} space(size,index):{self.space[foundSpaceIndex]}')
 
+            if(foundSpaceIndex != -1):
+                (fsize, findex) = self.space[foundSpaceIndex]
+                if (findex > index): continue
+                #print(f"Moving file {index} to {findex}")
+
+                id = self.blockMap[index]
+                FREE = -1
+                for i in range(size):
+                    self.blockMap[findex + i] = id
+                    self.blockMap[index + i] = FREE
+                if(fsize == size): self.space.pop(foundSpaceIndex)
+                else: self.space[foundSpaceIndex] = (fsize - size, findex + size)
+                self.space.sort(key=lambda e: e[1])
+                #self.printBlockMap()
+
+
+       
 
     def fragment(self):
         FREE_SPACE=-1
@@ -138,19 +132,22 @@ class Sol:
             i += 1
         return sum
 
-
-
+    def blockCheckSum2(self):
+        s = 0
+        for i in range(len(self.blockMap)):
+            if(self.blockMap[i] != -1): s += i * self.blockMap[i]
+        return s
 
 
 
     
 
-sol = Sol("example.txt")
-sol.printBlockMap()
-sol.fragment()
-sol.printBlockMap()
-print(sol.blockCheckSum())
-sol.gen_block_map2()
-sol.printBlockMap()
+sol = Sol("input.txt")
+#sol.printBlockMap()
+#print(len(sol.blockMap))
+#sol.print_space()
+#sol.print_files()
 sol.compact()
-sol.printBlockMap()
+#sol.printBlockMap()
+print(sol.blockCheckSum2())
+#print(sol.digits)
