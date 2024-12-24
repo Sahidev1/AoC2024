@@ -1,5 +1,10 @@
 import math 
 
+
+#final optimized solution is explore_blinks which uses DFS and memoization to count nr of stones after blinks
+#Time complexity is hard to precisely define but it must be polynomial since 75 blinks takes just milliseconds, compared to pre optimization bruteforce which would take about 4 million years, bruteforce complexy was O(2^n)
+#Increasing max memo capacity --> improved time complexity
+#Memory complexity: O(B*10^d) where B is nr of blinks and d is the max number of digits memoized stones can possess. 
 class Sol:
 
     def __init__(self, inputPath):
@@ -12,6 +17,8 @@ class Sol:
 
         self.stones = self.init_stones.copy()
         self.memo:dict[tuple[int], list[int]] = {}
+        
+        self.explorememo:dict[(int, int), int] = {} # dict[(int: digit, int: blinks), int:count]
     
     def reset_stones(self):
         self.stones = self.init_stones.copy()
@@ -76,6 +83,40 @@ class Sol:
             return tv 
         else: return []
 
+    def explore_stone(self, stone:int,blinks:int):
+        if (blinks == 0): return 1
+        if (stone == 0): 
+            if((stone,blinks) in self.explorememo):
+                return self.explorememo[(stone,blinks)]
+            cnt = self.explore_stone(1, blinks - 1)
+            self.explorememo[(stone, blinks)] = cnt
+            return cnt
+        else:
+            MAX_DCOUNT = 7
+            dcount = self._digit_count(stone)
+            if (dcount < MAX_DCOUNT and (stone, blinks) in self.explorememo):
+                return self.explorememo[(stone, blinks)]
+
+
+            cnt = 0
+            if (dcount % 2 == 0):
+                (a, b)=self._split_integer(stone, dcount)
+                cnt = self.explore_stone(a, blinks - 1) + self.explore_stone(b, blinks - 1)
+            else:
+                cnt = self.explore_stone(stone*2024, blinks - 1)
+
+            if (dcount < MAX_DCOUNT):
+                self.explorememo[(stone, blinks)] = cnt
+                 
+            return cnt
+                
+
+    def explore_blinks(self, blinks):
+        self.reset_stones()
+        stoneCnt = 0
+        for stone in self.stones:
+            stoneCnt += self.explore_stone(stone, blinks)
+        return stoneCnt
 
     
 
@@ -102,7 +143,9 @@ sol = Sol("input.txt")
 sol.print_init_stones()
 sol.print_stones()
 print("blinking:")
-sol.opt_blinks(37)
+#sol.opt_blinks(35)
+stones = sol.explore_blinks(300)
+print(stones)
 #sol.print_stones()
 print(len(sol.stones))
-
+#print(sol.explorememo)
