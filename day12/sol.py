@@ -76,6 +76,65 @@ class Sol:
         
         return (-1,-1)
 
+    def explore_right(self, start:coord, plant: chr, visitQ:list[coord]):
+        (row, col) = start
+        i = col
+        matrix = self.matrix
+        visits = self.matrixVisits
+        left = 0
+        right = 0
+        up = 0
+        down = 0
+
+        area = 0
+        while(i < self.mtrxN and matrix[row][i] == plant):
+            if (i <= 0 or matrix[row][i - 1] != plant):
+                left = 1
+            if (i >= self.mtrxN - 1 or matrix[row][i + 1] != plant):
+                right = 1
+            if (row <= 0 or matrix[row - 1][i] != plant):
+                up = 1
+            if (row >= self.mtrxN - 1 or matrix[row + 1][i] != plant):
+                down = 1
+            
+            if (row < self.mtrxN - 1 and matrix[row + 1][i] == plant):
+                if(not visits[row + 1][i]):
+                    visitQ.insert(0,(row + 1, i))
+                    visits[row + 1][i] = True
+
+            visits[row][i] = True
+            area += 1
+            self.visitCnt +=1 
+            i += 1
+            s = 0
+            if (left + right + up + down > 0): s = 1
+
+        return (area ,s)
+        
+    def explore_region2(self, start:coord):
+        visitQ:list[coord] = [start]
+        area = 0
+        sides = 0
+        plant = self.matrix[start[0]][start[1]]
+
+        while len(visitQ) > 0:
+            row = visitQ.pop()
+            (a, s) = self.explore_right(row, plant, visitQ)
+            area += a
+            sides += s
+            
+        self.regions.append((plant , area, sides))
+
+
+
+    def explore_regions2(self):
+        maxVisits = self.mtrxN*self.mtrxN
+
+        while self.visitCnt < maxVisits:
+            unvisited = self.find_unvisited()
+            if(unvisited == (-1,-1)):break
+            self.explore_region2(unvisited)
+
 
     def explore_regions(self):
         maxVisits = self.mtrxN * self.mtrxN
@@ -97,10 +156,18 @@ class Sol:
     def solve1(self):
         self.explore_regions()
         return self.calculate_cost() 
+    
+    def solve2(self):
+        self.explore_regions2()
+        return self.calculate_cost()
 
-
-sol = Sol("input.txt")
+fpath = "example.txt"
+sol = Sol(fpath)
 print(sol.solve1())
+print(sol.regions)
+sol = Sol(fpath)
+print(sol.solve2())
+print(sol.regions)
 #print(sol.matrix)
 #print(sol.matrixVisits)
 #print(sol.visitCnt)
